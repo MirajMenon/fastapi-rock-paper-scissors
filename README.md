@@ -88,7 +88,7 @@ pytest
      "winner": null,
      "player1_move": "rock",
      "player2_move": null,
-     "game_state": "Created" | "Joined",
+     "game_state": "Created",
      "message": "Waiting for the other player to play"
    }
    ```
@@ -97,21 +97,21 @@ pytest
 
    ```json
    {
-     "winner": "Player 2" | "Player 1" | "Draw",
-     "player1_move": "rock" | "paper" | "scissors",
-     "player2_move": "rock" | "paper" | "scissors",
+     "winner": "Player 2",
+     "player1_move": "rock",
+     "player2_move": "paper",
      "game_state": "Finished",
-     "message": "It's a Draw!" | "Player 1 Wins!" | "Player 2 Wins!"
+     "message": "Player 2 Wins!"
    }
+   ```
 
    Errors:
+
    - 400 when player attempts to move twice: `{ "detail": "You have already moved" }`
    - 400 when the game is finished: `{ "detail": "Game already finished" }`
    - 400 when player is invalid for the game: `{ "detail": "Invalid player" }`
    - 404 when the game does not exist: `{ "detail": "Invalid player or game" }`
    - 422 when the move is not one of `rock|paper|scissors`.
-
-   ```
 
 4. Get results
 
@@ -124,9 +124,9 @@ pytest
    ```json
    {
      "winner": null,
-     "player1_move": "rock" | null,
-     "player2_move": "paper" | null,
-     "game_state": "Created" | "Joined",
+     "player1_move": "rock",
+     "player2_move": null,
+     "game_state": "Joined",
      "message": "Waiting for the other player to play"
    }
    ```
@@ -135,18 +135,17 @@ pytest
 
    ```json
    {
-     "winner": "Player 1" | "Player 2" | "Draw",
-     "player1_move": "rock" | "paper" | "scissors",
-     "player2_move": "rock" | "paper" | "scissors",
+     "winner": "Player 1",
+     "player1_move": "paper",
+     "player2_move": "rock",
      "game_state": "Finished",
-     "message": "It's a Draw!" | "Player 1 Wins!" | "Player 2 Wins!"
+     "message": "Player 1 Wins!"
    }
+   ```
 
    Errors:
 
    - 404 when the game does not exist: `{ "detail": "Invalid game" }`
-
-   ```
 
 5. Health check
 
