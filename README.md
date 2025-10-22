@@ -13,6 +13,23 @@ Two players can create a game, join, submit moves, and see the results.
 pip install -r requirements.txt
 ```
 
+3. Set up environment variables (optional):
+
+Copy the example environment file and update with your values:
+
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` with your database credentials:
+
+```bash
+# Database Configuration
+DATABASE_URL=postgresql+psycopg2://postgres:your_password@localhost:5433/game
+```
+
+The application automatically loads environment variables from the `.env` file. If no `.env` file is provided, the application will use the default PostgreSQL connection.
+
 ### Run the application
 
 Start the development server with uvicorn from the project root:
@@ -159,4 +176,4 @@ pytest
 
 ### Implementation note
 
-This implementation uses an in-memory dictionary (`games_db`) for storing game state. If you prefer a database-backed implementation with SQLAlchemy models and sessions, refer to the database integration branch: [fastapi-rock-paper-scissors/tree/feat/database-integration](https://github.com/MirajMenon/fastapi-rock-paper-scissors/tree/feat/database-integration).
+This implementation uses a database connection (PostgreSQL) with SQLAlchemy models and sessions for persistent game state storage. If you prefer an in-memory dictionary implementation, refer to the main branch: [fastapi-rock-paper-scissors/tree/main](https://github.com/MirajMenon/fastapi-rock-paper-scissors/tree/main).

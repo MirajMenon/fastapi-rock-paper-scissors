@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request, HTTPException, Depends
+from sqlalchemy.orm import Session
 from app.schemas.game_schema import (
     CreateGameResponse,
     PlayMoveRequest,
@@ -6,20 +7,21 @@ from app.schemas.game_schema import (
     JoinGameResponse,
 )
 from app.services import game_service
+from app.database.database import get_db
 from uuid import UUID
 
 router = APIRouter(prefix="/game", tags=["Game"])
 
 
 @router.post("/create", response_model=CreateGameResponse)
-def create_game(request: Request):
+def create_game(request: Request, db: Session = Depends(get_db)):
     base_url = str(request.base_url).rstrip("/")
-    return game_service.create_game(base_url)
+    return game_service.create_game(db, base_url)
 
 
 @router.post("/join/{game_id}", response_model=JoinGameResponse)
-def join_game(game_id: UUID):
-    result = game_service.join_game(game_id)
+def join_game(game_id: UUID, db: Session = Depends(get_db)):
+    result = game_service.join_game(db, game_id)
     if not result:
         raise HTTPException(status_code=404, detail="Game not found")
     if "error" in result:
@@ -28,8 +30,8 @@ def join_game(game_id: UUID):
 
 
 @router.post("/{game_id}/play", response_model=GameResult)
-def play_move(game_id: UUID, payload: PlayMoveRequest):
-    result = game_service.play_move(game_id, payload.player_id, payload.move)
+def play_move(game_id: UUID, payload: PlayMoveRequest, db: Session = Depends(get_db)):
+    result = game_service.play_move(db, game_id, payload.player_id, payload.move)
     if not result:
         raise HTTPException(status_code=404, detail="Invalid player or game")
     if "error" in result:
@@ -38,8 +40,8 @@ def play_move(game_id: UUID, payload: PlayMoveRequest):
 
 
 @router.get("/{game_id}/results", response_model=GameResult)
-def get_results(game_id: UUID):
-    result = game_service.get_results(game_id)
+def get_results(game_id: UUID, db: Session = Depends(get_db)):
+    result = game_service.get_results(db, game_id)
     if not result:
         raise HTTPException(status_code=404, detail="Invalid game")
     if "error" in result:
