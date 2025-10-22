@@ -1,5 +1,10 @@
 from fastapi import APIRouter, Request, HTTPException
-from app.schemas.game_schema import CreateGameResponse, PlayMoveRequest, GameResult
+from app.schemas.game_schema import (
+    CreateGameResponse,
+    PlayMoveRequest,
+    GameResult,
+    JoinGameResponse,
+)
 from app.services import game_service
 from uuid import UUID
 
@@ -8,11 +13,11 @@ router = APIRouter(prefix="/game", tags=["Game"])
 
 @router.post("/create", response_model=CreateGameResponse)
 def create_game(request: Request):
-    base_url = str(request.base_url).rstrip('/')
+    base_url = str(request.base_url).rstrip("/")
     return game_service.create_game(base_url)
 
 
-@router.post("/join/{game_id}")
+@router.post("/join/{game_id}", response_model=JoinGameResponse)
 def join_game(game_id: UUID):
     result = game_service.join_game(game_id)
     if not result:
@@ -24,9 +29,19 @@ def join_game(game_id: UUID):
 
 @router.post("/{game_id}/play", response_model=GameResult)
 def play_move(game_id: UUID, payload: PlayMoveRequest):
-    result = game_service.play_move(game_id, payload.player_id, payload.move.value)
+    result = game_service.play_move(game_id, payload.player_id, payload.move)
     if not result:
         raise HTTPException(status_code=404, detail="Invalid player or game")
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
+
+
+@router.get("/{game_id}/results", response_model=GameResult)
+def get_results(game_id: UUID):
+    result = game_service.get_results(game_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Invalid game")
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
     return result
