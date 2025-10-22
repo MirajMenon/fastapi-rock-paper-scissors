@@ -33,10 +33,13 @@ Swagger docs: `http://127.0.0.1:8000/docs`.
 
    Response:
 
+   Response body (CreateGameResponse):
+
    ```json
    {
-     "game_id": "UUID",
-     "player1_id": "UUID",
+     "game_id": "<uuid>",
+     "player1_id": "<uuid>",
+     "game_state": "Created",
      "join_url": "http://127.0.0.1:8000/game/join/<game_id>"
    }
    ```
@@ -45,14 +48,20 @@ Swagger docs: `http://127.0.0.1:8000/docs`.
 
    POST `/game/join/{game_id}`
 
-   Response:
+   Response body (JoinGameResponse):
 
    ```json
    {
-     "game_id": "UUID",
-     "player2_id": "UUID"
+     "game_id": "<uuid>",
+     "player2_id": "<uuid>",
+     "game_state": "Joined"
    }
    ```
+
+   Errors:
+
+   - 404 when the game does not exist: `{ "detail": "Game not found" }`
+   - 400 when the game already has two players: `{ "detail": "Game already has two players" }`
 
 3. Play a move
 
@@ -71,6 +80,7 @@ Swagger docs: `http://127.0.0.1:8000/docs`.
      "winner": null,
      "player1_move": "rock",
      "player2_move": null,
+     "game_state": "Created" | "Joined",
      "message": "Waiting for the other player to play"
    }
    ```
@@ -79,14 +89,58 @@ Swagger docs: `http://127.0.0.1:8000/docs`.
 
    ```json
    {
-     "winner": "Player 2",
-     "player1_move": "rock",
-     "player2_move": "paper",
-     "message": null
+     "winner": "Player 2" | "Player 1" | "Draw",
+     "player1_move": "rock" | "paper" | "scissors",
+     "player2_move": "rock" | "paper" | "scissors",
+     "game_state": "Finished",
+     "message": "It's a Draw!" | "Player 1 Wins!" | "Player 2 Wins!"
+   }
+
+   Errors:
+   - 400 when player attempts to move twice: `{ "detail": "You have already moved" }`
+   - 400 when the game is finished: `{ "detail": "Game already finished" }`
+   - 400 when player is invalid for the game: `{ "detail": "Invalid player" }`
+   - 404 when the game does not exist: `{ "detail": "Invalid player or game" }`
+   - 422 when the move is not one of `rock|paper|scissors`.
+
+   ```
+
+4. Get results
+
+   GET `/game/{game_id}/results`
+
+   Response body (GameResult):
+
+   Waiting state:
+
+   ```json
+   {
+     "winner": null,
+     "player1_move": "rock" | null,
+     "player2_move": "paper" | null,
+     "game_state": "Created" | "Joined",
+     "message": "Waiting for the other player to play"
    }
    ```
 
-4. Health check
+   Resolved state:
+
+   ```json
+   {
+     "winner": "Player 1" | "Player 2" | "Draw",
+     "player1_move": "rock" | "paper" | "scissors",
+     "player2_move": "rock" | "paper" | "scissors",
+     "game_state": "Finished",
+     "message": "It's a Draw!" | "Player 1 Wins!" | "Player 2 Wins!"
+   }
+
+   Errors:
+
+   - 404 when the game does not exist: `{ "detail": "Invalid game" }`
+
+   ```
+
+5. Health check
 
    GET `/`
 
@@ -96,14 +150,6 @@ Swagger docs: `http://127.0.0.1:8000/docs`.
    { "status": "OK" }
    ```
 
-## Suggested Next Steps and Enhancements
+### Implementation note
 
-If I had more time, here are some ways I would improve the project:
-
-- **Persistent storage**: Currently, the game uses an in-memory database (`games_db`), so restarting the server clears all games. I would use a database to make game data persistent.
-
-- **Test cases**: I would write tests to cover all possible move combinations and edge cases.
-
-- **Better error handling**: I would implement more descriptive errors and proper HTTP status codes for invalid moves or other edge cases.
-
-- **Authentication**: I would add player authentication to ensure moves are secure and players cannot impersonate others.
+This implementation uses an in-memory dictionary (`games_db`) for storing game state. If you prefer a database-backed implementation with SQLAlchemy models and sessions, refer to the database integration branch: [fastapi-rock-paper-scissors/tree/feat/database-integration](https://github.com/MirajMenon/fastapi-rock-paper-scissors/tree/feat/database-integration).
