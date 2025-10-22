@@ -25,6 +25,14 @@ The API will be available at `http://127.0.0.1:8000`.
 
 Swagger docs: `http://127.0.0.1:8000/docs`.
 
+### Run tests
+
+From the project root, run the test suite with:
+
+```bash
+pytest
+```
+
 ### API Endpoints
 
 1. Create a game
